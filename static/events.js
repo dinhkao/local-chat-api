@@ -4,6 +4,7 @@ import { msgEl, renderMsgs } from "./messages.js";
 import { getWS } from "./net.js";
 import { showSearch, clearSearch, doSearch } from "./search.js";
 import { sendMsg, editMsg, deleteMsg, startReply } from "./actions.js";
+import { initThemeSelect } from "./theme.js";
 import { loadGroups, createGroup } from "./api.js";
 
 export function wireEvents(selectGroupFn) {
@@ -28,6 +29,8 @@ export function wireEvents(selectGroupFn) {
     const ws = getWS();
     typingTimer = setTimeout(() => { if (ws?.readyState === 1) ws.send(JSON.stringify({ type: "typing", group_id: currentGroup, user_id: me })); }, 500);
   };
+
+  initThemeSelect($("#theme-select"));
 
   $("#hamburger").onclick = e => { e.stopPropagation(); toggleSidebar(true); };
   $("#close-sidebar").onclick = e => { e.stopPropagation(); toggleSidebar(false); };

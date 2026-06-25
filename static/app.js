@@ -5,6 +5,7 @@ import { renderMsgs } from "./messages.js";
 import { connectWS } from "./net.js";
 import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
+import { initTheme } from "./theme.js";
 
 const $ = s => document.querySelector(s);
 
@@ -70,6 +71,7 @@ async function init() {
   ul.innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join("");
   ul.querySelectorAll("li").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
 
+  initTheme();
   connectWS(onWSMessage);
   startTimeInterval();
   wireEvents(selectGroup);

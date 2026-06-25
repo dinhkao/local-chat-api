@@ -1,0 +1,48 @@
+/* ── Dark Theme ── */
+body{font:14px system-ui,sans-serif;background:#111;color:#eee}
+
+#sidebar{background:#1a1a1a;border-right:1px solid #333}
+#sidebar h3{border-bottom:1px solid #333}
+#sidebar h3 span{color:#666}
+#groups li{border-bottom:1px solid #222}
+#groups li:hover{background:#252525}
+#groups li.active{background:#2a4a6a;font-weight:600}
+#sidebar form{border-top:1px solid #333}
+#sidebar input{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
+#sidebar button{background:#2a6a3a;color:#fff;border:none;border-radius:4px}
+
+#hamburger{color:#eee;background:none;border:none}
+#topbar{background:#1a1a1a;border-bottom:1px solid #333}
+#topbar select{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
+#topbar span{color:#888}
+#search-input{background:#222;border:1px solid #555;color:#eee;border-radius:4px}
+#search-input:focus{border-color:#6af}
+#search-clear{color:#f66}
+#search-info{color:#888}
+#typing-indicator{color:#888}
+
+#msgs{}
+.msg{background:#1e1e1e;border-radius:6px}
+.msg.mine{background:#1a3a4a}
+.msg .author{color:#6af}
+.msg .meta{color:#666}
+.msg .meta a{color:#888}
+.msg .meta a:hover{color:#ccc}
+.msg.deleted .text{color:#555}
+.msg .reply{background:#252530;border-left:2px solid #6af;color:#888}
+
+#input-area{background:#1a1a1a;border-top:1px solid #333}
+#input-area input{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
+#input-area button{background:#2a6a5a;color:#fff;border:none;border-radius:4px}
+#input-area .replying{color:#888;background:#252525}
+#input-area .replying a{color:#f66}
+
+#emoji-btn{color:#888;background:none;border:none}
+#emoji-btn:hover{background:#333;color:#eee}
+#emoji-picker{background:#252525;border:1px solid #444;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+#emoji-picker span:hover{background:#333}
+
+#theme-select{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
+
+.msg.highlight{animation:hl 1.5s ease-out}
+@keyframes hl{0%{background:#2a4a6a}100%{background:transparent}}

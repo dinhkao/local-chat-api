@@ -1,0 +1,52 @@
+/* ── Oldschool Raw HTML Theme ── */
+body{font:14px "Times New Roman",Times,serif;background:#fff;color:#000}
+
+#sidebar{background:#f0f0f0;border-right:1px solid #000}
+#sidebar h3{border-bottom:1px solid #000;font-size:14px}
+#sidebar h3 span{color:#000}
+#groups li{border-bottom:1px solid #ccc}
+#groups li:hover{background:#ddd}
+#groups li.active{background:#b0c4de;font-weight:700}
+#sidebar form{border-top:1px solid #000}
+#sidebar input{background:#fff;border:1px solid #000;color:#000;border-radius:0}
+#sidebar button{background:#e0e0e0;color:#000;border:2px outset #ccc;border-radius:0;font-family:"Times New Roman",Times,serif}
+#sidebar button:active{border:2px inset #ccc}
+
+#hamburger{color:#000;background:none;border:1px solid #000;font-size:18px;padding:2px 6px}
+#topbar{background:#f0f0f0;border-bottom:1px solid #000}
+#topbar select{background:#fff;border:1px solid #000;color:#000;border-radius:0;font-family:"Times New Roman",Times,serif}
+#topbar span{color:#555}
+#search-input{background:#fff;border:1px solid #000;color:#000;border-radius:0}
+#search-input:focus{border-color:#00f}
+#search-clear{color:#00f}
+#search-info{color:#555}
+#typing-indicator{color:#555}
+
+.msg{background:#fff;border:1px solid #000;border-radius:0}
+.msg.mine{background:#eef}
+.msg .author{color:#00f}
+.msg .author a{color:#00f}
+.msg .meta{color:#555}
+.msg .meta a{color:#00f;text-decoration:underline}
+.msg .meta a:hover{color:#f00}
+.msg.deleted .text{color:#999}
+.msg .reply{background:#f5f5f5;border-left:2px solid #00f;color:#555}
+
+#input-area{background:#f0f0f0;border-top:1px solid #000}
+#input-area input{background:#fff;border:1px solid #000;color:#000;border-radius:0;font-family:"Times New Roman",Times,serif}
+#input-area button{background:#e0e0e0;color:#000;border:2px outset #ccc;border-radius:0;font-family:"Times New Roman",Times,serif;font-weight:700}
+#input-area button:active{border:2px inset #ccc}
+#input-area .replying{color:#555;background:#e8e8e8}
+#input-area .replying a{color:#00f}
+
+#emoji-btn{color:#000;background:none;border:1px solid #000;border-radius:0}
+#emoji-btn:hover{background:#e0e0e0}
+#emoji-picker{background:#fff;border:2px outset #ccc;border-radius:0;box-shadow:none}
+#emoji-picker span:hover{background:#e0e0e0}
+
+#theme-select{background:#fff;border:1px solid #000;color:#000;border-radius:0;font-family:"Times New Roman",Times,serif}
+
+.avatar{border:1px solid #000}
+
+.msg.highlight{animation:hl 1.5s ease-out}
+@keyframes hl{0%{background:#ffa}100%{background:transparent}}
