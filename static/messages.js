@@ -40,12 +40,13 @@ export function msgEl(m, userId, cache) {
 // Full rebuild (group switch, user switch)
 export function renderMsgs(containerSelector, msgs, userId, forceScroll) {
   const div = document.querySelector(containerSelector);
+  // Remove only messages + empty state, keep other children (scroll-btn etc.)
+  div.querySelectorAll(".msg, #empty-state").forEach(el => el.remove());
   if (!msgs || !msgs.length) {
-    div.innerHTML = '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>';
+    div.insertAdjacentHTML("afterbegin", '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>');
     return div;
   }
   const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 60;
-  div.innerHTML = "";
   msgs.forEach(m => { const el = msgEl(m, userId, msgs); if (el) div.append(el); });
   if (forceScroll || nearBottom) div.scrollTop = div.scrollHeight;
   return div;
