@@ -3,7 +3,7 @@ import { broadcast } from "./ws.js";
 
 // Bot config: { bot_user_id: { trigger: "text", reply: "text" } }
 const bots = {
-  2: { trigger: "hi", reply: "hello" },
+  3: { trigger: "hi", reply: "hello" },
 };
 
 /** Run after every new message. Checks if any bot should reply. */
