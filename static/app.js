@@ -79,7 +79,7 @@ async function init() {
 
   // Lazy scroll-up + scroll-to-bottom button
   let sbb = document.getElementById("scroll-bottom-btn");
-  if (!sbb) { sbb = Object.assign(document.createElement("button"), { id: "scroll-bottom-btn", className: "hidden", textContent: "↓" }); document.getElementById("msgs").append(sbb); }
+  if (!sbb) { sbb = Object.assign(document.createElement("button"), { id: "scroll-bottom-btn", className: "hidden", textContent: "↓" }); document.getElementById("main").append(sbb); }
   sbb.onclick = () => { const d = $("#msgs"); d.scrollTop = d.scrollHeight; sbb.classList.add("hidden"); };
   $("#msgs").addEventListener("scroll", () => {
     const div = $("#msgs");

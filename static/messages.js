@@ -92,6 +92,7 @@ export function removeMsg(containerSelector, id) {
   if (el) el.remove();
   const div = document.querySelector(containerSelector);
   if (div && !div.querySelector(".msg")) {
-    div.innerHTML = '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>';
+    div.querySelectorAll(".msg, #empty-state").forEach(el => el.remove());
+    div.insertAdjacentHTML("afterbegin", '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>');
   }
 }
