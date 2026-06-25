@@ -13,11 +13,12 @@ export function switchTheme(name) {
   if (!link) return;
   const theme = THEMES.includes(name) ? name : DEFAULT;
   link.href = `/static/themes/${theme}.css`;
-  localStorage.setItem(STORAGE_KEY, theme);
+  try { localStorage.setItem(STORAGE_KEY, theme); } catch {}
 }
 
 // Populate theme select dropdown
 export function initThemeSelect(selectEl) {
+  if (!selectEl) return;
   selectEl.innerHTML = THEMES.map(t =>
     `<option value="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
   ).join("");
@@ -27,7 +28,7 @@ export function initThemeSelect(selectEl) {
 
 // Get saved theme or default
 export function getSaved() {
-  return localStorage.getItem(STORAGE_KEY) || DEFAULT;
+  try { return localStorage.getItem(STORAGE_KEY) || DEFAULT; } catch { return DEFAULT; }
 }
 
 // Init: load saved theme on page load
