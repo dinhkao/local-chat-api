@@ -23,7 +23,7 @@ app.route("/api/messages", messageActionsApp);
 app.route("/api/users", usersApp);
 
 // Serve static frontend
-app.use("/static/*", serveStatic({ root: join(__dirname, "static") }));
+app.use("/static/*", serveStatic({ root: __dirname }));
 app.get("/", (c) => {
   const html = readFileSync(join(__dirname, "static", "index.html"), "utf-8");
   return c.html(html);

@@ -12,6 +12,11 @@ wss.on("connection", (ws) => {
     let data;
     try { data = JSON.parse(raw.toString()); } catch { return; }
 
+    if (data.type === "typing") {
+      broadcastTyping(data.group_id, data.user_id);
+      return;
+    }
+
     if (data.type === "send") {
       const groupId = data.group_id;
       const userId = data.user_id;
@@ -37,6 +42,16 @@ wss.on("connection", (ws) => {
 /** Attach group-scope info to a client on upgrade */
 export function setClientGroup(ws, groupId) {
   clients.set(ws, { groupId });
+}
+
+/** Broadcast typing event without persisting */
+function broadcastTyping(groupId, userId) {
+  const payload = JSON.stringify({ event: "typing", group_id: groupId, user_id: userId, _ts: Date.now() });
+  for (const [ws, info] of clients) {
+    if (ws.readyState === 1 && (info.groupId === null || info.groupId === groupId)) {
+      ws.send(payload);
+    }
+  }
 }
 
 /** Broadcast an event to all clients subscribed to the given group_id */
