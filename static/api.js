@@ -16,11 +16,6 @@ export function loadMessages(gid, opts = {}) {
     .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
 }
 
-export function searchMessages(gid, q) {
-  return fetch(`${API}/api/groups/${gid}/search?q=${encodeURIComponent(q)}`)
-    .then(r => r.json());
-}
-
 export function createGroup(name) {
   return fetch(API + "/api/groups", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name })

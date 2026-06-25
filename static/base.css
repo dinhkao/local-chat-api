@@ -20,7 +20,7 @@ body{display:flex;height:100dvh}
 #topbar span{font-size:12px}
 #search-wrap{flex:1;display:flex;justify-content:flex-end;gap:6px;align-items:center;min-width:0}
 #search-input{padding:4px 8px;font-size:12px;width:140px;max-width:100%}
-#search-input:focus{outline:none}
+#search-input:focus{outline:2px solid}
 #search-clear{cursor:pointer;font-size:13px;font-weight:700}
 #search-info{font-size:11px;margin-left:auto;white-space:nowrap}
 #typing-indicator{font-size:11px;padding:2px 12px 4px;min-height:18px;font-style:italic}
@@ -42,7 +42,7 @@ body{display:flex;height:100dvh}
 .avatar-sm{width:18px;height:18px;font-size:8px}
 
 /* ── Input area ── */
-#input-area{display:flex;gap:8px;padding:10px 12px;align-items:center}
+#input-area{display:flex;gap:8px;padding:10px 12px;align-items:center;position:relative}
 #input-area input{flex:1;padding:8px;font-size:14px}
 #input-area button{padding:8px 16px;cursor:pointer;font-size:14px}
 #input-area .replying{font-size:11px;padding:4px 8px;display:flex;align-items:center;gap:8px;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}

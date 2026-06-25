@@ -9,7 +9,8 @@ export function sendMsg() {
   const text = document.getElementById("msg-text").value.trim();
   if (!text || !currentGroup || !me) return;
   const clientMsgId = `c_${Date.now()}_${tempId++}`;
-  const msg = { id: `_pending_${tempId}`, client_msg_id: clientMsgId, group_id: currentGroup, user_id: me, text, reply_to: replyTo, _optimistic: true };
+  const rep = replyTo;
+  const msg = { id: `_pending_${tempId}`, client_msg_id: clientMsgId, group_id: currentGroup, user_id: me, text, reply_to: rep, _optimistic: true };
   getMsgs(currentGroup).push(msg);
   renderMsgs("#msgs", getMsgs(currentGroup), me, true);
   document.getElementById("msg-text").value = "";
@@ -17,7 +18,7 @@ export function sendMsg() {
   document.getElementById("reply-bar").classList.add("hidden");
   const ws = getWS();
   if (ws?.readyState === 1) {
-    ws.send(JSON.stringify({ type: "send", group_id: currentGroup, user_id: me, text, reply_to: replyTo, client_msg_id: clientMsgId }));
+    ws.send(JSON.stringify({ type: "send", group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId }));
   }
 }
 

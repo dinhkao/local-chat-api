@@ -17,7 +17,7 @@ body{font:14px "Times New Roman",Times,serif;background:#fff;color:#000}
 #topbar select{background:#fff;border:1px solid #000;color:#000;border-radius:0;font-family:"Times New Roman",Times,serif}
 #topbar span{color:#555}
 #search-input{background:#fff;border:1px solid #000;color:#000;border-radius:0}
-#search-input:focus{border-color:#00f}
+#search-input:focus{border-color:#00f;outline-color:#00f}
 #search-clear{color:#00f}
 #search-info{color:#555}
 #typing-indicator{color:#555}

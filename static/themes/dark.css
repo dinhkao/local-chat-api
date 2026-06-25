@@ -16,7 +16,7 @@ body{font:14px system-ui,sans-serif;background:#111;color:#eee}
 #topbar select{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
 #topbar span{color:#888}
 #search-input{background:#222;border:1px solid #555;color:#eee;border-radius:4px}
-#search-input:focus{border-color:#6af}
+#search-input:focus{border-color:#6af;outline-color:#6af}
 #search-clear{color:#f66}
 #search-info{color:#888}
 #typing-indicator{color:#888}

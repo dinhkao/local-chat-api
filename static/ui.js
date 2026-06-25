@@ -9,6 +9,7 @@ export function avatarHTML(id, name, small) {
 
 // ── Relative time ──
 export function relativeTime(iso) {
+  if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.floor(diff / 1000);
   if (s < 10) return "just now";
