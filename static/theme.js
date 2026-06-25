@@ -1,5 +1,5 @@
 const STORAGE_KEY = "chat-theme";
-const THEMES = ["dark", "oldschool"];
+const THEMES = ["dark", "oldschool", "yahoo"];
 const DEFAULT = "dark";
 
 // Get theme link element
