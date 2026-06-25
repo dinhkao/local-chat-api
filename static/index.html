@@ -156,6 +156,8 @@ async function selectGroup(id) {
   clearSearch();
   // On mobile, close sidebar after picking group
   if (window.innerWidth <= 640) toggleSidebar(false);
+  // Desktop only: focus chat input so u can type right away
+  if (window.innerWidth > 640) $("#msg-text").focus();
 }
 
 function renderMsgs() {
