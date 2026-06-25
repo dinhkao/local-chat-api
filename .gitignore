@@ -3,3 +3,6 @@ chat.db*
 .env
 .DS_Store
 app.log
+
+# Playwright test artifacts
+.playwright-mcp/
