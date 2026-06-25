@@ -43,7 +43,7 @@ export function wireEvents(selectGroupFn) {
   let searchTimer = null;
   $("#search-input").onkeyup = e => {
     clearTimeout(searchTimer);
-    if (e.key === "Escape") { clearSearch(); return; }
+    if (e.key === "Escape") { clearSearch(); renderMsgs("#msgs", getMsgs(currentGroup), me, true); return; }
     if (e.key === "Enter") $("#search-input").blur();
     searchTimer = setTimeout(() => doSearch($("#search-input").value.trim(), currentGroup, (m) => msgEl(m, me, getMsgs(currentGroup)), () => renderMsgs("#msgs", getMsgs(currentGroup), me, true)), 250);
   };
