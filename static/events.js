@@ -48,7 +48,7 @@ export function wireEvents(selectGroupFn) {
     if (e.key === "Enter") $("#search-input").blur();
     searchTimer = setTimeout(() => doSearch($("#search-input").value.trim(), currentGroup, (m) => msgEl(m, me, getMsgs(currentGroup)), () => renderMsgs("#msgs", getMsgs(currentGroup), me, true)), 250);
   };
-  $("#search-clear").onclick = clearSearch;
+  $("#search-clear").onclick = () => { clearSearch(); renderMsgs("#msgs", getMsgs(currentGroup), me, true); };
   $("#cancel-reply").onclick = () => { setReplyTo(null); $("#reply-bar").classList.add("hidden"); };
   $("#emoji-btn").onclick = toggleEmojiPicker;
 

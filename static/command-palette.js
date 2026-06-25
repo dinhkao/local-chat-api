@@ -8,7 +8,7 @@ import { renderMsgs } from "./messages.js";
 const THEMES = ["dark", "oldschool", "yahoo"];
 
 const COMMANDS = [
-  { name: "Search messages", icon: "🔍", action: () => { document.getElementById("search-input")?.focus(); } },
+  { name: "Search messages", icon: "🔍", action: () => { clearSearch(); showSearch(); document.getElementById("search-input")?.focus(); } },
   { name: "Switch theme", icon: "🎨", action: () => { const cur = getSaved(); const i = THEMES.indexOf(cur); switchTheme(THEMES[(i + 1) % THEMES.length]); } },
   { name: "Create group", icon: "➕", action: async () => { const name = prompt("Group name:"); if (!name) return; await createGroup(name); location.reload(); } },
   { name: "Switch user", icon: "👤", action: () => { const sel = document.getElementById("user-id"); if (!sel) return; const opts = [...sel.options]; const i = opts.findIndex(o => parseInt(o.value) === me); sel.value = opts[(i + 1) % opts.length].value; sel.onchange?.(new Event("change")); } },
