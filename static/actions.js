@@ -1,5 +1,5 @@
 import { me, currentGroup, replyTo, setReplyTo, getMsgs, setMe } from "./state.js";
-import { renderMsgs } from "./messages.js";
+import { appendMsg, renderMsgs } from "./messages.js";
 import { getWS } from "./net.js";
 import { editMessage, deleteMessage } from "./api.js";
 
@@ -12,7 +12,8 @@ export function sendMsg() {
   const rep = replyTo;
   const msg = { id: `_pending_${tempId}`, client_msg_id: clientMsgId, group_id: currentGroup, user_id: me, text, reply_to: rep, _optimistic: true };
   getMsgs(currentGroup).push(msg);
-  renderMsgs("#msgs", getMsgs(currentGroup), me, true);
+  appendMsg("#msgs", msg, me, getMsgs(currentGroup));
+  document.querySelector("#msgs").scrollTop = document.querySelector("#msgs").scrollHeight;
   const inp = document.getElementById("msg-text");
   inp.value = "";
   inp.style.height = "auto";

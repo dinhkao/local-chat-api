@@ -1,7 +1,7 @@
 import { loadUsers, loadGroups } from "./api.js";
 import { me, currentGroup, setMe, setCurrentGroup, getMsgs, getMeta } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
-import { renderMsgs } from "./messages.js";
+import { renderMsgs, appendMsg, replaceMsg, removeMsg } from "./messages.js";
 import { connectWS, getWS, setJoinUser } from "./net.js";
 import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
@@ -44,15 +44,14 @@ function onWSMessage(data) {
   const cache = getMsgs(currentGroup);
   if (data.event === "new_message") {
     const idx = cache.findIndex(m => m._optimistic && m.client_msg_id === data.message.client_msg_id);
-    if (idx >= 0) cache[idx] = data.message;
-    else cache.push(data.message);
-    renderMsgs("#msgs", cache, me);
+    if (idx >= 0) { cache[idx] = data.message; replaceMsg("#msgs", data.message, me, cache); }
+    else { cache.push(data.message); appendMsg("#msgs", data.message, me, cache); }
   } else if (data.event === "edit_message") {
     const idx = cache.findIndex(m => m.id === data.message.id);
-    if (idx >= 0) { cache[idx] = data.message; renderMsgs("#msgs", cache, me); }
+    if (idx >= 0) { cache[idx] = data.message; replaceMsg("#msgs", data.message, me, cache); }
   } else if (data.event === "delete_message") {
     const idx = cache.findIndex(m => m.id === data.message_id);
-    if (idx >= 0) { cache.splice(idx, 1); renderMsgs("#msgs", cache, me); }
+    if (idx >= 0) { cache.splice(idx, 1); removeMsg("#msgs", data.message_id); }
   } else if (data.event === "typing" && data.user_id !== me) {
     showTyping(data.user_id);
   }

@@ -6,6 +6,7 @@ export function msgEl(m, userId, cache) {
     const el = document.createElement("div");
     el.className = "msg mine pending";
     el.id = `msg-${m.id}`;
+    if (m.client_msg_id) el.dataset.clientMsgId = m.client_msg_id;
     el.innerHTML = `<div class="author">${avatarHTML(userId, "You")} You</div>
       <div class="text">${esc(m.text)}</div>
       <div class="meta"><span>sending...</span></div>`;
@@ -36,16 +37,60 @@ export function msgEl(m, userId, cache) {
   return el;
 }
 
+// Full rebuild (group switch, user switch)
 export function renderMsgs(containerSelector, msgs, userId, forceScroll) {
   const div = document.querySelector(containerSelector);
   if (!msgs || !msgs.length) {
     div.innerHTML = '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>';
     return div;
   }
-  // Only auto-scroll if user was near bottom (< 60px from bottom)
   const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 60;
   div.innerHTML = "";
   msgs.forEach(m => { const el = msgEl(m, userId, msgs); if (el) div.append(el); });
   if (forceScroll || nearBottom) div.scrollTop = div.scrollHeight;
   return div;
+}
+
+// Append single message (new msg via WS or optimistic)
+export function appendMsg(containerSelector, m, userId, cache) {
+  const div = document.querySelector(containerSelector);
+  const empty = div.querySelector("#empty-state");
+  if (empty) empty.remove();
+  const el = msgEl(m, userId, cache);
+  if (!el) return null;
+  div.append(el);
+  const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 60;
+  if (nearBottom) div.scrollTop = div.scrollHeight;
+  return el;
+}
+
+// Prepend batch (scroll-up lazy load)
+export function prependMsgs(containerSelector, msgs, userId, cache) {
+  const div = document.querySelector(containerSelector);
+  const oldH = div.scrollHeight;
+  const oldTop = div.scrollTop;
+  const frag = document.createDocumentFragment();
+  msgs.forEach(m => { const el = msgEl(m, userId, cache); if (el) frag.append(el); });
+  div.prepend(frag);
+  div.scrollTop = oldTop + (div.scrollHeight - oldH);
+}
+
+// Replace existing message element (edit)
+export function replaceMsg(containerSelector, m, userId, cache) {
+  let el = document.querySelector(`#msg-${m.id}`);
+  // Not found by id — try matching optimistic via client_msg_id
+  if (!el && m.client_msg_id) el = document.querySelector(`[data-client-msg-id="${m.client_msg_id}"]`);
+  if (!el) return;
+  const newEl = msgEl(m, userId, cache);
+  if (newEl) el.replaceWith(newEl);
+}
+
+// Remove message element (delete)
+export function removeMsg(containerSelector, id) {
+  const el = document.querySelector(`#msg-${id}`);
+  if (el) el.remove();
+  const div = document.querySelector(containerSelector);
+  if (div && !div.querySelector(".msg")) {
+    div.innerHTML = '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>';
+  }
 }
