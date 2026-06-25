@@ -1,22 +1,20 @@
 // ── Socket.IO client ──
 let socket = null;
-let joinUserId = null;
 let currentGroupId = null;
+let currentUserId = null;
 
 export function getSocket() { return socket; }
-
-export function setJoinUser(id) { joinUserId = id; }
 
 export function setSubscribeGroup(groupId) {
   currentGroupId = groupId;
   if (socket) socket.emit("subscribe", { group_id: groupId });
 }
 
-export function connectWS(onMessage) {
-  socket = io();
+export function connectWS(userId, onMessage) {
+  currentUserId = userId;
+  socket = io({ auth: { user_id: userId } });
 
   socket.on("connect", () => {
-    if (joinUserId) socket.emit("join", { user_id: joinUserId });
     if (currentGroupId) socket.emit("subscribe", { group_id: currentGroupId });
   });
 

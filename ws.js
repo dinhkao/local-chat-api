@@ -3,7 +3,7 @@ import { sendMessage } from "./lib/send-message.js";
 import db from "./db.js";
 
 let io;
-const clients = new Map(); // socketId -> { groupId, userId }
+const clients = new Map(); // socketId -> { groupId }
 
 // Bot config: { bot_user_id: { trigger: "text", reply: "text" } }
 const bots = {
@@ -42,8 +42,20 @@ function runBots(groupId, message) {
 export function initSocket(server) {
   io = new Server(server, { cors: { origin: "*" } });
 
+  // ── Auth middleware ──
+  io.use((socket, next) => {
+    const userId = socket.handshake.auth.user_id;
+    if (!userId) return next(new Error("missing user_id"));
+    const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
+    if (!user) return next(new Error("invalid user_id"));
+    socket.data.userId = userId;
+    next();
+  });
+
   io.on("connection", (socket) => {
-    clients.set(socket.id, { groupId: null, userId: null });
+    const userId = socket.data.userId;
+    clients.set(socket.id, { groupId: null, userId });
+    broadcastPresence();
 
     socket.on("typing", (data) => {
       const info = clients.get(socket.id);
@@ -51,16 +63,9 @@ export function initSocket(server) {
       socket.to(`group:${info.groupId}`).emit("typing", {
         event: "typing",
         group_id: info.groupId,
-        user_id: data.user_id,
+        user_id: userId,
         _ts: Date.now(),
       });
-    });
-
-    socket.on("join", (data) => {
-      const info = clients.get(socket.id) || {};
-      info.userId = data.user_id;
-      clients.set(socket.id, info);
-      broadcastPresence();
     });
 
     socket.on("subscribe", (data) => {
@@ -71,21 +76,31 @@ export function initSocket(server) {
       socket.join(`group:${data.group_id}`);
     });
 
-    socket.on("send", (data) => {
+    // ── Acknowledgement: server replies to sender only ──
+    socket.on("send", (data, callback) => {
       const groupId = data.group_id;
-      const userId = data.user_id;
       const text = data.text;
       const replyTo = data.reply_to;
       const clientMsgId = data.client_msg_id;
 
-      if (!groupId || !userId || !text) return;
+      if (!groupId || !userId || !text) {
+        if (callback) callback({ error: "missing fields" });
+        return;
+      }
 
       try {
         const msg = sendMessage(groupId, userId, text, replyTo, clientMsgId);
-        broadcast(groupId, { event: "new_message", message: msg });
+        // Ack to sender only
+        if (typeof callback === "function") callback(msg);
+        // Broadcast to others in the room
+        socket.to(`group:${groupId}`).emit("new_message", {
+          event: "new_message",
+          message: msg,
+          group_id: groupId,
+        });
         runBots(groupId, msg);
       } catch (e) {
-        socket.emit("error", { event: "error", error: e.message });
+        if (typeof callback === "function") callback({ error: e.message });
       }
     });
 

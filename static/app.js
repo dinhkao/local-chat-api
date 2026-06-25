@@ -2,7 +2,7 @@ import { loadUsers, loadGroups } from "./api.js";
 import { me, currentGroup, setMe, setCurrentGroup, getMsgs, getMeta } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs, appendMsg, replaceMsg, removeMsg } from "./messages.js";
-import { connectWS, getSocket, setJoinUser, setSubscribeGroup } from "./net.js";import { showSearch, clearSearch } from "./search.js";
+import { connectWS, getSocket, setSubscribeGroup } from "./net.js";import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
 import { fetchAndMerge, loadMore, fillViewport } from "./pagination.js";
@@ -65,13 +65,11 @@ async function init() {
   sel.innerHTML = users.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
   sel.onchange = () => {
     setMe(parseInt(sel.value));
-    setJoinUser(me);
-    const socket = getSocket();
-    if (socket?.connected) socket.emit("join", { user_id: me });
     renderMsgs("#msgs", getMsgs(currentGroup), me, true);
+    // Reconnect with new user identity
+    connectWS(me, onWSMessage);
   };
   setMe(users[0]?.id || null);
-  setJoinUser(me);
 
   const groups = await loadGroups();
   const ul = $("#groups");
@@ -93,7 +91,7 @@ async function init() {
   });
 
   initTheme();
-  connectWS(onWSMessage);
+  connectWS(me, onWSMessage);
   startTimeInterval();
   wireEvents(selectGroup);
   const last = localStorage.getItem("lastGroup");

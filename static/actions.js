@@ -1,5 +1,5 @@
 import { me, currentGroup, replyTo, setReplyTo, getMsgs, setMe } from "./state.js";
-import { appendMsg, renderMsgs } from "./messages.js";
+import { appendMsg, renderMsgs, replaceMsg } from "./messages.js";
 import { getSocket } from "./net.js";
 import { editMessage, deleteMessage } from "./api.js";
 
@@ -21,7 +21,13 @@ export function sendMsg() {
   document.getElementById("reply-bar").classList.add("hidden");
   const socket = getSocket();
   if (socket?.connected) {
-    socket.emit("send", { group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId });
+    socket.emit("send", { group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId }, (savedMsg) => {
+      if (savedMsg?.error) return console.error("send failed:", savedMsg.error);
+      // Replace optimistic with real message from server ack
+      const cache = getMsgs(currentGroup);
+      const idx = cache.findIndex(m => m._optimistic && m.client_msg_id === clientMsgId);
+      if (idx >= 0) { cache[idx] = savedMsg; replaceMsg("#msgs", savedMsg, me, cache); }
+    });
   }
 }
 
