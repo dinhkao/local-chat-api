@@ -153,6 +153,8 @@ async function selectGroup(id) {
   // Show search bar
   $("#search-wrap").classList.remove("hidden");
   clearSearch();
+  // On mobile, close sidebar after picking group
+  if (window.innerWidth <= 640) toggleSidebar(false);
 }
 
 function renderMsgs() {

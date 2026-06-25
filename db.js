@@ -15,8 +15,6 @@ db.pragma("cache_size = -20000");
 db.pragma("temp_store = MEMORY");
 db.pragma("foreign_keys = ON");
 
-db.function("strip_accents", stripAccents);
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS groups (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,6 +63,7 @@ try { db.exec("ALTER TABLE messages ADD COLUMN text_latin TEXT"); } catch {}
 try { db.exec("ALTER TABLE messages ADD COLUMN client_msg_id TEXT"); } catch {}
 try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_client_msg ON messages(client_msg_id)"); } catch {}
 
-db.exec("UPDATE messages SET text_latin = strip_accents(text) WHERE text_latin IS NULL OR text_latin = ''");
+{const rows = db.prepare("SELECT id, text FROM messages WHERE text_latin IS NULL").all();
+for (const r of rows) db.prepare("UPDATE messages SET text_latin = ? WHERE id = ?").run(stripAccents(r.text), r.id);}
 
 export default db;
