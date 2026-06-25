@@ -1,0 +1,20 @@
+# local-chat-api
+
+## Before work
+Read `git log --oneline -10` first — check if anyone else committed changes before starting work.
+
+## After work
+1. Test everything (see Testing rule)
+2. Commit + push every change
+3. If no remote configured, create one via `gh repo create` and push
+
+## Testing rule
+After every change (feature, fix, refactor), ALWAYS test:
+1. Server starts without errors
+2. Send message via WS
+3. List messages
+4. Edit + Delete
+5. Search (accent-insensitive)
+6. Check SQLite schema matches current db.js
+
+Keep chat.db in repo root.

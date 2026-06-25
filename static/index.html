@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Local Chat</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:14px system-ui,sans-serif;background:#111;color:#eee;display:flex;height:100dvh}
+#sidebar{width:220px;background:#1a1a1a;border-right:1px solid #333;display:flex;flex-direction:column;flex-shrink:0}
+#sidebar h3{padding:12px;border-bottom:1px solid #333;font-size:13px;text-transform:uppercase;letter-spacing:1px}
+#sidebar h3 span{float:right;cursor:pointer;color:#666;display:none}
+#groups{flex:1;overflow-y:auto;list-style:none}
+#groups li{padding:10px 12px;cursor:pointer;border-bottom:1px solid #222;font-size:13px}
+#groups li:hover{background:#252525}
+#groups li.active{background:#2a4a6a;font-weight:600}
+#sidebar form{padding:10px;border-top:1px solid #333;display:flex;gap:6px}
+#sidebar input{flex:1;padding:6px;background:#222;border:1px solid #444;color:#eee;border-radius:4px;font-size:12px}
+#sidebar button{padding:6px 10px;background:#2a6a3a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+#hamburger{display:none;background:none;border:none;color:#eee;font-size:22px;cursor:pointer;padding:0 4px;line-height:1}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#topbar{display:flex;align-items:center;gap:8px;padding:8px;background:#1a1a1a;border-bottom:1px solid #333;flex-wrap:wrap}
+#topbar select{padding:6px;background:#222;border:1px solid #444;color:#eee;border-radius:4px;font-size:12px;max-width:100px}
+#topbar span{font-size:12px;color:#888}
+#search-wrap{flex:1;display:flex;justify-content:flex-end;gap:6px;align-items:center;min-width:0}
+#search-input{padding:4px 8px;background:#222;border:1px solid #555;color:#eee;border-radius:4px;font-size:12px;width:140px;max-width:100%}
+#search-input:focus{border-color:#6af;outline:none}
+#search-clear{color:#f66;cursor:pointer;font-size:13px;font-weight:700}
+#search-info{font-size:11px;color:#888;margin-left:auto;white-space:nowrap}
+.msg.highlight{animation:hl 1.5s ease-out}
+@keyframes hl{0%{background:#2a4a6a}100%{background:transparent}}
+#msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.msg{padding:8px 10px;background:#1e1e1e;border-radius:6px;max-width:80%;align-self:flex-start;position:relative}
+.msg.mine{align-self:flex-end;background:#1a3a4a}
+.msg .author{font-size:11px;color:#6af;margin-bottom:3px}
+.msg .text{font-size:13px;word-break:break-word}
+.msg .meta{font-size:10px;color:#666;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.msg .meta a{color:#888;cursor:pointer;text-decoration:none;padding:2px}
+.msg.deleted .text{color:#555;font-style:italic}
+.msg.reply{padding:4px 8px;margin-bottom:4px;background:#252530;border-left:2px solid #6af;font-size:11px;color:#888;border-radius:3px;cursor:pointer}
+#input-area{display:flex;gap:8px;padding:10px 12px;background:#1a1a1a;border-top:1px solid #333}
+#input-area input{flex:1;padding:8px;background:#222;border:1px solid #444;color:#eee;border-radius:4px;font-size:14px}
+#input-area button{padding:8px 16px;background:#2a6a5a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px}
+#input-area .replying{font-size:11px;color:#888;padding:4px 8px;background:#252525;border-radius:4px;display:flex;align-items:center;gap:8px;max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#input-area .replying a{color:#f66;cursor:pointer}
+.hidden{display:none!important}
+/* Sidebar overlay on mobile */
+@media(max-width:640px){
+  body{position:relative}
+  #sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .2s;width:260px}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar h3 span{display:inline;padding:0 8px}
+  #hamburger{display:block}
+  #topbar{gap:6px;padding:6px}
+  #topbar select{max-width:80px;font-size:11px;padding:4px}
+  #search-input{width:100px;font-size:11px}
+  .msg{max-width:92%}
+  #input-area{padding:8px}
+  #input-area input{font-size:16px;padding:10px}  /* prevents iOS zoom */
+  .msg .meta a{padding:4px 6px}  /* bigger tap target */
+  #sidebar li{padding:12px;font-size:14px}
+  #sidebar input{padding:10px;font-size:14px}
+  #sidebar button{padding:10px}
+  #sidebar form{padding:8px}
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h3>Groups<span id="close-sidebar">✕</span></h3>
+  <ul id="groups"><li style="color:#666">Loading...</li></ul>
+  <form id="new-group">
+    <input placeholder="New group name..." id="group-name" required>
+    <button type="submit">+</button>
+  </form>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <button id="hamburger">☰</button>
+    <span>👤</span>
+    <select id="user-id"></select>
+    <span id="group-title">—</span>
+    <span id="search-wrap" class="hidden">
+      <input id="search-input" placeholder="Search..." maxlength="100">
+      <a id="search-clear" class="hidden">✕</a>
+    </span>
+    <span id="search-info" class="hidden"></span>
+  </div>
+  <div id="msgs"><span style="color:#555">Pick a group</span></div>
+  <div id="input-area" class="hidden">
+    <div class="replying hidden" id="reply-bar"><span id="reply-preview"></span><a id="cancel-reply">✕</a></div>
+    <input id="msg-text" placeholder="Type message..." autofocus>
+    <button id="send-btn">Send</button>
+  </div>
+</div>
+
+<script>
+const API = "";
+let me = null, currentGroup = null, replyTo = null, ws = null;
+const $ = s => document.querySelector(s);
+const messageCache = {}; // groupId -> messages (newest at end)
+
+function getMsgs(gid) { return messageCache[gid] || (messageCache[gid] = []); }
+
+async function loadUsers() {
+  const users = await fetch(API + "/api/users").then(r => r.json());
+  const sel = $("select#user-id");
+  sel.innerHTML = users.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
+  sel.onchange = () => { me = parseInt(sel.value); renderMsgs(); };
+  me = users[0]?.id || null;
+}
+
+async function loadGroups() {
+  const groups = await fetch(API + "/api/groups").then(r => r.json());
+  const ul = $("ul#groups");
+  ul.innerHTML = groups.map(g => `<li data-id="${g.id}" class="${currentGroup===g.id?'active':''}"># ${g.name}</li>`).join("");
+  ul.querySelectorAll("li").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
+}
+
+// Fetch messages from server, merge into local cache
+function loadMore(gid, opts = {}) {
+  const params = new URLSearchParams({ limit: 100 });
+  if (opts.before) params.set("before", opts.before);
+  return fetch(`${API}/api/groups/${gid}/messages?${params}`)
+    .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+    .then(data => {
+      const existingIds = new Set(getMsgs(gid).map(m => m.id));
+      const fresh = data.messages.filter(m => !existingIds.has(m.id));
+      if (opts.prepend) getMsgs(gid).unshift(...fresh);
+      else getMsgs(gid).push(...fresh);
+      return data;
+    });
+}
+
+async function selectGroup(id) {
+  currentGroup = id;
+  $("#input-area").classList.remove("hidden");
+  $("li.active")?.classList.remove("active");
+  $(`li[data-id="${id}"]`)?.classList.add("active");
+  const g = await fetch(`${API}/api/groups`).then(r => r.json());
+  $("span#group-title").textContent = (g.find(x => x.id === id) || {}).name || "";
+
+  // Load if not cached
+  if (!getMsgs(id).length) {
+    await loadMore(id);
+    // Preload next page silently
+    const oldest = getMsgs(id)[0]?.id;
+    if (oldest) loadMore(id, { before: oldest, prepend: true });
+  }
+  renderMsgs();
+  // Show search bar
+  $("#search-wrap").classList.remove("hidden");
+  clearSearch();
+}
+
+function renderMsgs() {
+  const div = $("div#msgs");
+  const msgs = getMsgs(currentGroup);
+  div.innerHTML = msgs.length ? "" : '<span style="color:#555">No messages yet</span>';
+  msgs.forEach(m => { const el = msgEl(m); if (el) div.append(el); });
+  div.scrollTop = div.scrollHeight;
+}
+
+// ── Search ────────────────────────────────────────────────────────────
+let searchTimer = null;
+
+function showSearch() { $("#search-wrap").classList.remove("hidden"); }
+function clearSearch() {
+  $("#search-input").value = "";
+  $("#search-clear").classList.add("hidden");
+  $("#search-info").classList.add("hidden");
+  if (currentGroup) renderMsgs();
+}
+
+function doSearch() {
+  const q = $("#search-input").value.trim();
+  if (!q || !currentGroup) { clearSearch(); return; }
+
+  $("#search-clear").classList.remove("hidden");
+  $("#search-info").textContent = "Searching...";
+  $("#search-info").classList.remove("hidden");
+
+  fetch(`${API}/api/groups/${currentGroup}/search?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(data => {
+      const div = $("div#msgs");
+      if (!data.results || !data.results.length) {
+        div.innerHTML = '<span style="color:#555">No results</span>';
+        $("#search-info").textContent = "0 matches";
+        return;
+      }
+      $("#search-info").textContent = `${data.results.length} matches`;
+      div.innerHTML = "";
+      data.results.forEach(m => {
+        const el = msgEl(m);
+        if (el) {
+          el.classList.add("search-result");
+          el.addEventListener("click", () => {
+            clearSearch();
+            renderMsgs();
+            setTimeout(() => {
+              document.querySelector(`#msg-${m.id}`)?.scrollIntoView({ behavior: "smooth" });
+              document.querySelector(`#msg-${m.id}`)?.classList.add("highlight");
+            }, 100);
+          });
+          // Show snippet of text_latin since search matched on that
+          const snippet = document.createElement("div");
+          snippet.className = "snippet";
+          snippet.textContent = `${m.text}`;
+          el.querySelector(".meta")?.before(snippet);
+          div.append(el);
+        }
+      });
+    })
+    .catch(() => {
+      $("#search-info").textContent = "Search failed";
+    });
+}
+
+function msgEl(m) {
+  if (typeof m.id === "string" && m._optimistic) {
+    // Pending message — show immediately
+    const el = document.createElement("div");
+    el.className = `msg mine pending`;
+    el.id = `msg-${m.id}`;
+    el.innerHTML = `<div class="author">You</div><div class="text">${esc(m.text)}</div><div class="meta"><span>sending...</span></div>`;
+    return el;
+  }
+  const prevDiv = $("div#msgs");
+  const el = document.createElement("div");
+  el.className = `msg${m.user_id === me ? " mine" : ""}${m.deleted_at ? " deleted" : ""}`;
+  el.id = `msg-${m.id}`;
+
+  let replyHtml = "";
+  if (m.reply_to) {
+    const cache = getMsgs(currentGroup);
+    const parent = cache.find(x => x.id === m.reply_to);
+    const pt = parent ? (parent.text || "").slice(0, 60) : "deleted";
+    replyHtml = `<div class="reply" data-reply="${m.reply_to}">↳ ${esc(pt)}</div>`;
+  }
+
+  const author = m.user_id === me ? "You" : `User #${m.user_id}`;
+  const text = m.deleted_at ? "(deleted)" : esc(m.text);
+  const edited = m.edited_at ? " (edited)" : "";
+
+  el.innerHTML = `${replyHtml}
+    <div class="author">${author}</div>
+    <div class="text">${text}</div>
+    <div class="meta">
+      ${m.deleted_at ? "" : `<a class="reply-btn" data-id="${m.id}">reply</a>
+      <a class="edit-btn" data-id="${m.id}">edit</a>
+      <a class="delete-btn" data-id="${m.id}">delete</a>`}
+      <span>${edited}</span>
+    </div>`;
+
+  el.querySelectorAll(".reply-btn").forEach(b => b.onclick = e => { e.stopPropagation(); startReply(parseInt(b.dataset.id)); });
+  el.querySelectorAll(".edit-btn").forEach(b => b.onclick = () => editMsg(parseInt(b.dataset.id)));
+  el.querySelectorAll(".delete-btn").forEach(b => b.onclick = () => deleteMsg(parseInt(b.dataset.id)));
+  el.querySelectorAll(".reply").forEach(r => r.onclick = () => {
+    const rid = parseInt(r.dataset.reply);
+    document.querySelector(`#msg-${rid}`)?.scrollIntoView({ behavior: "smooth" });
+  });
+  return el;
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function startReply(id) {
+  replyTo = id;
+  const cache = getMsgs(currentGroup);
+  const m = cache.find(x => x.id === id);
+  $("span#reply-preview").textContent = "↳ " + (m ? (m.text || "").slice(0, 40) : "");
+  $("div#reply-bar").classList.remove("hidden");
+  $("input#msg-text").focus();
+}
+$("a#cancel-reply").onclick = () => { replyTo = null; $("div#reply-bar").classList.add("hidden"); };
+
+// ── Optimistic send ──────────────────────────────────────────────────
+let tempId = 0;
+function sendMsg() {
+  const text = $("input#msg-text").value.trim();
+  if (!text || !currentGroup || !me) return;
+
+  // Show immediately in local cache
+  const gap = replyTo;
+  const msg = { id: `_pending_${++tempId}`, group_id: currentGroup, user_id: me, text, reply_to: gap, _optimistic: true };
+  getMsgs(currentGroup).push(msg);
+  renderMsgs();
+  $("input#msg-text").value = "";
+  replyTo = null;
+  $("div#reply-bar").classList.add("hidden");
+
+  // Actually send over WS
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: "send", group_id: currentGroup, user_id: me, text, reply_to: gap }));
+  }
+}
+
+async function editMsg(id) {
+  const text = prompt("Edit message:");
+  if (!text) return;
+  // Optimistic update
+  const cache = getMsgs(currentGroup);
+  const idx = cache.findIndex(m => m.id === id);
+  if (idx >= 0) { cache[idx] = { ...cache[idx], text, edited_at: new Date().toISOString() }; renderMsgs(); }
+  // Actually edit
+  await fetch(`${API}/api/messages/${id}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text })
+  });
+}
+
+async function deleteMsg(id) {
+  if (!confirm("Delete?")) return;
+  // Optimistic: remove from cache
+  const cache = getMsgs(currentGroup);
+  const idx = cache.findIndex(m => m.id === id);
+  if (idx >= 0) { cache.splice(idx, 1); renderMsgs(); }
+  // Actually delete
+  await fetch(`${API}/api/messages/${id}`, { method: "DELETE" });
+}
+
+$("form#new-group").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("input#group-name").value.trim();
+  if (!name) return;
+  await fetch(`${API}/api/groups`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name })
+  });
+  $("input#group-name").value = "";
+  loadGroups();
+};
+$("button#send-btn").onclick = sendMsg;
+$("input#msg-text").onkeydown = e => { if (e.key === "Enter") sendMsg(); };
+
+// ── Mobile sidebar toggle ─────────────────────────────────────────────
+function toggleSidebar(open) {
+  document.querySelector("#sidebar").classList.toggle("open", open);
+}
+$("#hamburger").onclick = e => { e.stopPropagation(); toggleSidebar(true); };
+$("#close-sidebar").onclick = e => { e.stopPropagation(); toggleSidebar(false); };
+// Close sidebar on outside tap (only if tap didn't open it)
+$("#main").onclick = () => { if (window.innerWidth <= 640) toggleSidebar(false); };
+
+// ── Search handlers ─────────────────────────────────────────────────────
+$("#search-input").onkeyup = e => {
+  clearTimeout(searchTimer);
+  if (e.key === "Escape") { clearSearch(); return; }
+  searchTimer = setTimeout(doSearch, 250);
+};
+$("#search-clear").onclick = clearSearch;
+
+// ── WebSocket ─────────────────────────────────────────────────────────
+function connectWS() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = ev => {
+    let data;
+    try { data = JSON.parse(ev.data); } catch { return; }
+    if (data.group_id !== currentGroup) return;
+    const cache = getMsgs(currentGroup);
+
+    if (data.event === "new_message") {
+      const idx = cache.findIndex(m => m._optimistic && m.user_id === data.message.user_id && m.text === data.message.text);
+      if (idx >= 0) {
+        cache[idx] = data.message; // Replace pending with confirmed
+      } else {
+        cache.push(data.message); // From someone else
+      }
+      renderMsgs();
+    } else if (data.event === "edit_message") {
+      const idx = cache.findIndex(m => m.id === data.message.id);
+      if (idx >= 0) { cache[idx] = data.message; renderMsgs(); }
+    } else if (data.event === "delete_message") {
+      const idx = cache.findIndex(m => m.id === data.message_id);
+      if (idx >= 0) { cache.splice(idx, 1); renderMsgs(); }
+    }
+  };
+  ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+loadUsers().then(loadGroups).then(connectWS);
+</script>
+</body>
+</html>
