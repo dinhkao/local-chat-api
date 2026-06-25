@@ -1,9 +1,14 @@
-import { WebSocketServer } from "ws";
+import { Server } from "socket.io";
 import { sendMessage } from "./lib/send-message.js";
-import { runBots } from "./bot.js";
+import db from "./db.js";
 
-const wss = new WebSocketServer({ noServer: true });
-const clients = new Map(); // ws -> { groupId: number | null, userId: number | null }
+let io;
+const clients = new Map(); // socketId -> { groupId, userId }
+
+// Bot config: { bot_user_id: { trigger: "text", reply: "text" } }
+const bots = {
+  3: { trigger: "hi", reply: "hello" },
+};
 
 function getOnlineIds() {
   const ids = new Set();
@@ -14,31 +19,59 @@ function getOnlineIds() {
 }
 
 function broadcastPresence() {
-  const payload = JSON.stringify({ event: "presence", online: getOnlineIds() });
-  for (const [ws] of clients) {
-    if (ws.readyState === 1) ws.send(payload);
+  io.emit("presence", { online: getOnlineIds() });
+}
+
+function runBots(groupId, message) {
+  for (const [botIdStr, rule] of Object.entries(bots)) {
+    const botId = parseInt(botIdStr);
+    if (message.user_id === botId) continue;
+    const text = (message.text || "").toLowerCase().trim();
+    if (text !== rule.trigger.toLowerCase()) continue;
+
+    const stmt = db.prepare(
+      "INSERT INTO messages (group_id, user_id, text, reply_to) VALUES (?, ?, ?, ?)"
+    );
+    const result = stmt.run(groupId, botId, rule.reply, null);
+    const reply = db.prepare("SELECT * FROM messages WHERE id = ?").get(result.lastInsertRowid);
+    broadcast(groupId, { event: "new_message", message: reply });
   }
 }
 
-wss.on("connection", (ws) => {
-  clients.set(ws, { groupId: null, userId: null });
+/** Initialize socket.io on existing HTTP server */
+export function initSocket(server) {
+  io = new Server(server, { cors: { origin: "*" } });
 
-  ws.on("message", (raw) => {
-    let data;
-    try { data = JSON.parse(raw.toString()); } catch { return; }
+  io.on("connection", (socket) => {
+    clients.set(socket.id, { groupId: null, userId: null });
 
-    if (data.type === "typing") {
-      broadcastTyping(data.group_id, data.user_id);
-      return;
-    }
+    socket.on("typing", (data) => {
+      const info = clients.get(socket.id);
+      if (!info?.groupId) return;
+      socket.to(`group:${info.groupId}`).emit("typing", {
+        event: "typing",
+        group_id: info.groupId,
+        user_id: data.user_id,
+        _ts: Date.now(),
+      });
+    });
 
-    if (data.type === "join") {
-      clients.set(ws, { ...clients.get(ws), userId: data.user_id });
+    socket.on("join", (data) => {
+      const info = clients.get(socket.id) || {};
+      info.userId = data.user_id;
+      clients.set(socket.id, info);
       broadcastPresence();
-      return;
-    }
+    });
 
-    if (data.type === "send") {
+    socket.on("subscribe", (data) => {
+      const info = clients.get(socket.id) || {};
+      if (info.groupId) socket.leave(`group:${info.groupId}`);
+      info.groupId = data.group_id;
+      clients.set(socket.id, info);
+      socket.join(`group:${data.group_id}`);
+    });
+
+    socket.on("send", (data) => {
       const groupId = data.group_id;
       const userId = data.user_id;
       const text = data.text;
@@ -52,50 +85,21 @@ wss.on("connection", (ws) => {
         broadcast(groupId, { event: "new_message", message: msg });
         runBots(groupId, msg);
       } catch (e) {
-        ws.send(JSON.stringify({ event: "error", error: e.message }));
+        socket.emit("error", { event: "error", error: e.message });
       }
-    }
-  });
+    });
 
-  ws.on("close", () => { clients.delete(ws); broadcastPresence(); });
-});
-
-/** Attach group-scope info to a client on upgrade */
-export function setClientGroup(ws, groupId) {
-  const prev = clients.get(ws) || {};
-  clients.set(ws, { ...prev, groupId });
-}
-
-/** Broadcast typing event without persisting */
-function broadcastTyping(groupId, userId) {
-  const payload = JSON.stringify({ event: "typing", group_id: groupId, user_id: userId, _ts: Date.now() });
-  for (const [ws, info] of clients) {
-    if (ws.readyState === 1 && (info.groupId === null || info.groupId === groupId)) {
-      ws.send(payload);
-    }
-  }
-}
-
-/** Broadcast an event to all clients subscribed to the given group_id */
-export function broadcast(groupId, event) {
-  const payload = JSON.stringify({ ...event, group_id: groupId });
-  for (const [ws, info] of clients) {
-    if (ws.readyState === 1 && (info.groupId === null || info.groupId === groupId)) {
-      ws.send(payload);
-    }
-  }
-}
-
-/** Handle HTTP->WS upgrade for Hono */
-export function handleUpgrade(server) {
-  server.on("upgrade", (req, socket, head) => {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const match = url.pathname.match(/^\/ws(?:\/(\d+))?$/);
-    if (!match) { socket.destroy(); return; }
-    const groupId = match[1] ? parseInt(match[1]) : null;
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      if (groupId) setClientGroup(ws, groupId);
-      wss.emit("connection", ws, req);
+    socket.on("disconnect", () => {
+      clients.delete(socket.id);
+      broadcastPresence();
     });
   });
+
+  return io;
+}
+
+/** Broadcast an event to all clients in the given group room */
+export function broadcast(groupId, event) {
+  if (!io) return;
+  io.to(`group:${groupId}`).emit(event.event, { ...event, group_id: groupId });
 }

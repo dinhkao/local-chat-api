@@ -9,7 +9,7 @@ import messagesApp from "./routes/messages.js";
 import messageActionsApp from "./routes/message-actions.js";
 import usersApp from "./routes/users.js";
 import searchApp from "./routes/search.js";
-import { handleUpgrade } from "./ws.js";
+import { initSocket } from "./ws.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "3004");
@@ -37,7 +37,7 @@ app.get("/", (c) => {
 
 const server = serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(`local-chat-api → http://localhost:${info.port}`);
-  console.log(`ws → ws://localhost:${info.port}/ws/:groupId`);
+  console.log(`socket.io → ws://localhost:${info.port}`);
 });
 
-handleUpgrade(server);
+initSocket(server);

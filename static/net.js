@@ -1,20 +1,28 @@
-// ── WebSocket ──
-let ws = null;
+// ── Socket.IO client ──
+let socket = null;
 let joinUserId = null;
+let currentGroupId = null;
 
-export function getWS() { return ws; }
+export function getSocket() { return socket; }
 
 export function setJoinUser(id) { joinUserId = id; }
 
+export function setSubscribeGroup(groupId) {
+  currentGroupId = groupId;
+  if (socket) socket.emit("subscribe", { group_id: groupId });
+}
+
 export function connectWS(onMessage) {
-  ws = new WebSocket(`ws://${location.host}/ws`);
-  ws.onopen = () => {
-    if (joinUserId) ws.send(JSON.stringify({ type: "join", user_id: joinUserId }));
-  };
-  ws.onmessage = ev => {
-    let data;
-    try { data = JSON.parse(ev.data); } catch { return; }
-    onMessage(data);
-  };
-  ws.onclose = () => setTimeout(() => connectWS(onMessage), 2000);
+  socket = io();
+
+  socket.on("connect", () => {
+    if (joinUserId) socket.emit("join", { user_id: joinUserId });
+    if (currentGroupId) socket.emit("subscribe", { group_id: currentGroupId });
+  });
+
+  // Listen for all known events
+  const events = ["new_message", "edit_message", "delete_message", "typing", "presence"];
+  events.forEach(evt => socket.on(evt, data => onMessage({ ...data, event: evt })));
+
+  socket.on("error", data => onMessage(data));
 }

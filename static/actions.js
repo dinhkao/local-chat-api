@@ -1,6 +1,6 @@
 import { me, currentGroup, replyTo, setReplyTo, getMsgs, setMe } from "./state.js";
 import { appendMsg, renderMsgs } from "./messages.js";
-import { getWS } from "./net.js";
+import { getSocket } from "./net.js";
 import { editMessage, deleteMessage } from "./api.js";
 
 let tempId = 0;
@@ -19,9 +19,9 @@ export function sendMsg() {
   inp.style.height = "auto";
   setReplyTo(null);
   document.getElementById("reply-bar").classList.add("hidden");
-  const ws = getWS();
-  if (ws?.readyState === 1) {
-    ws.send(JSON.stringify({ type: "send", group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId }));
+  const socket = getSocket();
+  if (socket?.connected) {
+    socket.emit("send", { group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId });
   }
 }
 

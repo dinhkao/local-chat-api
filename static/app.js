@@ -2,7 +2,7 @@ import { loadUsers, loadGroups } from "./api.js";
 import { me, currentGroup, setMe, setCurrentGroup, getMsgs, getMeta } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs, appendMsg, replaceMsg, removeMsg } from "./messages.js";
-import { connectWS, getWS, setJoinUser } from "./net.js";import { showSearch, clearSearch } from "./search.js";
+import { connectWS, getSocket, setJoinUser, setSubscribeGroup } from "./net.js";import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
 import { fetchAndMerge, loadMore, fillViewport } from "./pagination.js";
@@ -13,6 +13,7 @@ const $ = s => document.querySelector(s);
 async function selectGroup(id) {
   setCurrentGroup(id);
   localStorage.setItem("lastGroup", id);
+  setSubscribeGroup(id);
   $("#input-area").classList.remove("hidden");
   $("li.active")?.classList.remove("active");
   $(`li[data-id="${id}"]`)?.classList.add("active");
@@ -65,8 +66,8 @@ async function init() {
   sel.onchange = () => {
     setMe(parseInt(sel.value));
     setJoinUser(me);
-    const ws = getWS();
-    if (ws?.readyState === 1) ws.send(JSON.stringify({ type: "join", user_id: me }));
+    const socket = getSocket();
+    if (socket?.connected) socket.emit("join", { user_id: me });
     renderMsgs("#msgs", getMsgs(currentGroup), me, true);
   };
   setMe(users[0]?.id || null);

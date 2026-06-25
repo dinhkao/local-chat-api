@@ -1,7 +1,7 @@
 import { me, currentGroup, setReplyTo, getMsgs } from "./state.js";
 import { toggleEmojiPicker, toggleSidebar } from "./ui.js";
 import { msgEl, renderMsgs } from "./messages.js";
-import { getWS } from "./net.js";
+import { getSocket } from "./net.js";
 import { showSearch, clearSearch, doSearch } from "./search.js";
 import { sendMsg, editMsg, deleteMsg, startReply } from "./actions.js";
 import { initThemeSelect } from "./theme.js";
@@ -31,8 +31,8 @@ export function wireEvents(selectGroupFn) {
   $("#msg-text").onkeydown = e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); autoResize(); return; }
     clearTimeout(typingTimer);
-    const ws = getWS();
-    typingTimer = setTimeout(() => { if (ws?.readyState === 1) ws.send(JSON.stringify({ type: "typing", group_id: currentGroup, user_id: me })); }, 500);
+    const socket = getSocket();
+    typingTimer = setTimeout(() => { if (socket?.connected) socket.emit("typing", { group_id: currentGroup, user_id: me }); }, 500);
   };
 
   initThemeSelect($("#theme-select"));
