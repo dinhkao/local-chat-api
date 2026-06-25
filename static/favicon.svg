@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect x="2" y="4" width="28" height="20" rx="4" fill="#2a6a5a"/>
+  <path d="M8 28l6-4h-6z" fill="#2a6a5a"/>
+  <text x="16" y="19" text-anchor="middle" fill="#fff" font-size="14" font-family="sans-serif" font-weight="bold">💬</text>
+</svg>

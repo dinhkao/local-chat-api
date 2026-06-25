@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Local Chat</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/base.css">
 <script>!function(){try{var t=localStorage.getItem("chat-theme")||"dark",l=document.createElement("link");l.id="theme-css",l.rel="stylesheet",l.href="/static/themes/"+t+".css",document.head.appendChild(l)}catch(e){var c=document.createElement("link");c.id="theme-css";c.rel="stylesheet";c.href="/static/themes/dark.css";document.head.appendChild(c)}}()</script>
 <noscript><link id="theme-css" rel="stylesheet" href="/static/themes/dark.css"></noscript>
@@ -32,12 +33,17 @@
     </span>
     <span id="search-info" class="hidden"></span>
   </div>
-  <div id="msgs"><span style="color:#555">Pick a group</span></div>
+  <div id="msgs">
+    <div id="empty-state">
+      <span id="empty-icon">💬</span>
+      <span id="empty-text">Select group from sidebar to start chatting</span>
+    </div>
+  </div>
   <span id="typing-indicator" class="hidden"></span>
   <div id="input-area" class="hidden">
     <div class="replying hidden" id="reply-bar"><span id="reply-preview"></span><a id="cancel-reply">✕</a></div>
     <button id="emoji-btn">😊</button>
-    <input id="msg-text" placeholder="Type message..." autofocus>
+    <textarea id="msg-text" placeholder="Type message... (Enter send, Shift+Enter ↵)" rows="1" autofocus></textarea>
     <button id="send-btn">Send</button>
   </div>
 </div>

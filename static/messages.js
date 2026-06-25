@@ -39,7 +39,7 @@ export function msgEl(m, userId, cache) {
 export function renderMsgs(containerSelector, msgs, userId, forceScroll) {
   const div = document.querySelector(containerSelector);
   if (!msgs || !msgs.length) {
-    div.innerHTML = '<span style="color:#555">No messages yet</span>';
+    div.innerHTML = '<div id="empty-state"><span id="empty-icon">💬</span><span id="empty-text">No messages yet. Start typing below!</span></div>';
     return div;
   }
   // Only auto-scroll if user was near bottom (< 60px from bottom)

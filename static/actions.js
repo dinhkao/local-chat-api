@@ -13,7 +13,9 @@ export function sendMsg() {
   const msg = { id: `_pending_${tempId}`, client_msg_id: clientMsgId, group_id: currentGroup, user_id: me, text, reply_to: rep, _optimistic: true };
   getMsgs(currentGroup).push(msg);
   renderMsgs("#msgs", getMsgs(currentGroup), me, true);
-  document.getElementById("msg-text").value = "";
+  const inp = document.getElementById("msg-text");
+  inp.value = "";
+  inp.style.height = "auto";
   setReplyTo(null);
   document.getElementById("reply-bar").classList.add("hidden");
   const ws = getWS();

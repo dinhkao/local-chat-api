@@ -3,10 +3,25 @@ import { sendMessage } from "./lib/send-message.js";
 import { runBots } from "./bot.js";
 
 const wss = new WebSocketServer({ noServer: true });
-const clients = new Map(); // ws -> { groupId: number | null }
+const clients = new Map(); // ws -> { groupId: number | null, userId: number | null }
+
+function getOnlineIds() {
+  const ids = new Set();
+  for (const [, info] of clients) {
+    if (info.userId) ids.add(info.userId);
+  }
+  return [...ids];
+}
+
+function broadcastPresence() {
+  const payload = JSON.stringify({ event: "presence", online: getOnlineIds() });
+  for (const [ws] of clients) {
+    if (ws.readyState === 1) ws.send(payload);
+  }
+}
 
 wss.on("connection", (ws) => {
-  clients.set(ws, { groupId: null });
+  clients.set(ws, { groupId: null, userId: null });
 
   ws.on("message", (raw) => {
     let data;
@@ -14,6 +29,12 @@ wss.on("connection", (ws) => {
 
     if (data.type === "typing") {
       broadcastTyping(data.group_id, data.user_id);
+      return;
+    }
+
+    if (data.type === "join") {
+      clients.set(ws, { ...clients.get(ws), userId: data.user_id });
+      broadcastPresence();
       return;
     }
 
@@ -36,12 +57,13 @@ wss.on("connection", (ws) => {
     }
   });
 
-  ws.on("close", () => clients.delete(ws));
+  ws.on("close", () => { clients.delete(ws); broadcastPresence(); });
 });
 
 /** Attach group-scope info to a client on upgrade */
 export function setClientGroup(ws, groupId) {
-  clients.set(ws, { groupId });
+  const prev = clients.get(ws) || {};
+  clients.set(ws, { ...prev, groupId });
 }
 
 /** Broadcast typing event without persisting */

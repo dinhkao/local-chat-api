@@ -18,13 +18,17 @@ export function wireEvents(selectGroupFn) {
     $("#group-name").value = "";
     const groups = await loadGroups();
     $("#groups").innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join("");
-    $("#groups").querySelectorAll("li").forEach(li => li.onclick = () => selectGroupFn(parseInt(li.dataset.id)));
+    $("#groups").querySelectorAll("li[data-id]").forEach(li => li.onclick = () => selectGroupFn(parseInt(li.dataset.id)));
   };
   $("#send-btn").onclick = sendMsg;
 
+  // Auto-resize textarea
+  const autoResize = () => { const t = $("#msg-text"); t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; };
+  $("#msg-text").oninput = autoResize;
+
   let typingTimer = null;
   $("#msg-text").onkeydown = e => {
-    if (e.key === "Enter") sendMsg();
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); autoResize(); return; }
     clearTimeout(typingTimer);
     const ws = getWS();
     typingTimer = setTimeout(() => { if (ws?.readyState === 1) ws.send(JSON.stringify({ type: "typing", group_id: currentGroup, user_id: me })); }, 500);

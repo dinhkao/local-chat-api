@@ -3,6 +3,9 @@
 ## Before work
 Read `git log --oneline -10` first — check if anyone else committed changes before starting work.
 
+## Greeting rule
+Always start every response with "read claude.md ✅" — no exceptions.
+
 ## Run rule
 Always use nohup for background processes so they survive shell exit:
 ```

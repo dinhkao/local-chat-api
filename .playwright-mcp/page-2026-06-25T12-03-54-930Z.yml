@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Groups" [level=3] [ref=e3]
+    - list [ref=e4]:
+      - listitem [ref=e5] [cursor=pointer]: "# general"
+    - generic [ref=e6]:
+      - textbox "New group name..." [ref=e7]
+      - button "+" [ref=e8] [cursor=pointer]
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]: 👤
+      - combobox [ref=e12]:
+        - option "alice" [selected]
+        - option "bob"
+      - combobox [ref=e13] [cursor=pointer]:
+        - option "Dark" [selected]
+        - option "Oldschool"
+      - generic [ref=e14]: —
+    - generic [ref=e16]: Pick a group

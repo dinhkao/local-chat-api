@@ -2,7 +2,7 @@ import { loadUsers, loadGroups, loadMessages } from "./api.js";
 import { me, currentGroup, setMe, setCurrentGroup, getMsgs } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs } from "./messages.js";
-import { connectWS } from "./net.js";
+import { connectWS, getWS, setJoinUser } from "./net.js";
 import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
@@ -40,6 +40,16 @@ async function selectGroup(id) {
 
 // ── WS handler ──
 function onWSMessage(data) {
+  // Presence — not group-scoped
+  if (data.event === "presence") {
+    document.querySelectorAll("#user-id option").forEach(o => {
+      const uid = parseInt(o.value);
+      if (!uid) return;
+      const label = o.textContent.replace(/[🟢⚪]\s*/g, "");
+      o.textContent = (data.online.includes(uid) ? "🟢 " : "⚪ ") + label;
+    });
+    return;
+  }
   if (data.group_id !== currentGroup) return;
   const cache = getMsgs(currentGroup);
   if (data.event === "new_message") {
@@ -63,13 +73,21 @@ async function init() {
   const users = await loadUsers();
   const sel = $("#user-id");
   sel.innerHTML = users.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
-  sel.onchange = () => { setMe(parseInt(sel.value)); renderMsgs("#msgs", getMsgs(currentGroup), me, true); };
+  sel.onchange = () => {
+    setMe(parseInt(sel.value));
+    setJoinUser(me);
+    const ws = getWS();
+    if (ws?.readyState === 1) ws.send(JSON.stringify({ type: "join", user_id: me }));
+    renderMsgs("#msgs", getMsgs(currentGroup), me, true);
+  };
   setMe(users[0]?.id || null);
+  setJoinUser(me);
 
   const groups = await loadGroups();
   const ul = $("#groups");
-  ul.innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join("");
-  ul.querySelectorAll("li").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
+  if (!groups.length) { ul.innerHTML = '<li style="color:#666;cursor:default">No groups yet. Create one!</li>'; }
+  else { ul.innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join(""); }
+  ul.querySelectorAll("li[data-id]").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
 
   initTheme();
   connectWS(onWSMessage);
