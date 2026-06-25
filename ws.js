@@ -1,15 +1,10 @@
 import { Server } from "socket.io";
 import { sendMessage } from "./lib/send-message.js";
+import { runBots } from "./lib/bot-runner.js";
 import db from "./db.js";
 
 let io;
 const clients = new Map(); // socketId -> { groupId }
-
-// Bot config: { bot_user_id: { trigger: "text", reply: "text" } }
-const bots = {
-  3: { trigger: "hi", reply: "hello" },
-};
-
 function getOnlineIds() {
   const ids = new Set();
   for (const [, info] of clients) {
@@ -18,26 +13,11 @@ function getOnlineIds() {
   return [...ids];
 }
 
+let presenceTimer = null;
 function broadcastPresence() {
-  io.emit("presence", { online: getOnlineIds() });
+  clearTimeout(presenceTimer);
+  presenceTimer = setTimeout(() => io.emit("presence", { online: getOnlineIds() }), 50);
 }
-
-function runBots(groupId, message) {
-  for (const [botIdStr, rule] of Object.entries(bots)) {
-    const botId = parseInt(botIdStr);
-    if (message.user_id === botId) continue;
-    const text = (message.text || "").toLowerCase().trim();
-    if (text !== rule.trigger.toLowerCase()) continue;
-
-    const stmt = db.prepare(
-      "INSERT INTO messages (group_id, user_id, text, reply_to) VALUES (?, ?, ?, ?)"
-    );
-    const result = stmt.run(groupId, botId, rule.reply, null);
-    const reply = db.prepare("SELECT * FROM messages WHERE id = ?").get(result.lastInsertRowid);
-    broadcast(groupId, { event: "new_message", message: reply });
-  }
-}
-
 /** Initialize socket.io on existing HTTP server */
 export function initSocket(server) {
   io = new Server(server, { cors: { origin: "*" } });
@@ -70,6 +50,7 @@ export function initSocket(server) {
 
     socket.on("subscribe", (data) => {
       const info = clients.get(socket.id) || {};
+      if (info.groupId === data.group_id) return; // already in room
       if (info.groupId) socket.leave(`group:${info.groupId}`);
       info.groupId = data.group_id;
       clients.set(socket.id, info);

@@ -31,8 +31,7 @@ export function wireEvents(selectGroupFn) {
   $("#msg-text").onkeydown = e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); autoResize(); return; }
     clearTimeout(typingTimer);
-    const socket = getSocket();
-    typingTimer = setTimeout(() => { if (socket?.connected) socket.emit("typing", { group_id: currentGroup, user_id: me }); }, 500);
+    typingTimer = setTimeout(() => { const socket = getSocket(); if (socket?.connected) socket.emit("typing", { group_id: currentGroup, user_id: me }); }, 500);
   };
 
   initThemeSelect($("#theme-select"));
