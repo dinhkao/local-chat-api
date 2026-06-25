@@ -53,5 +53,8 @@ body{font:14px system-ui,sans-serif;background:#111;color:#eee}
 
 #theme-select{background:#222;border:1px solid #444;color:#eee;border-radius:4px}
 
+#scroll-bottom-btn{background:#2a6a5a;color:#fff}
+#scroll-bottom-btn:hover{background:#3a7a6a}
+
 .msg.highlight{animation:hl 1.5s ease-out}
 @keyframes hl{0%{background:#2a4a6a}100%{background:transparent}}

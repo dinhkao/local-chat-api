@@ -2,8 +2,7 @@ import { loadUsers, loadGroups } from "./api.js";
 import { me, currentGroup, setMe, setCurrentGroup, getMsgs, getMeta } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs, appendMsg, replaceMsg, removeMsg } from "./messages.js";
-import { connectWS, getWS, setJoinUser } from "./net.js";
-import { showSearch, clearSearch } from "./search.js";
+import { connectWS, getWS, setJoinUser } from "./net.js";import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
 import { fetchAndMerge, loadMore } from "./pagination.js";
@@ -78,10 +77,17 @@ async function init() {
   else { ul.innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join(""); }
   ul.querySelectorAll("li[data-id]").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
 
-  // Lazy scroll-up load
+  // Lazy scroll-up + scroll-to-bottom button
+  let sbb = document.getElementById("scroll-bottom-btn");
+  if (!sbb) { sbb = Object.assign(document.createElement("button"), { id: "scroll-bottom-btn", className: "hidden", textContent: "↓" }); document.getElementById("msgs").append(sbb); }
+  sbb.onclick = () => { const d = $("#msgs"); d.scrollTop = d.scrollHeight; sbb.classList.add("hidden"); };
   $("#msgs").addEventListener("scroll", () => {
     const div = $("#msgs");
-    if (div.scrollTop <= 40 && currentGroup) loadMore(currentGroup);
+    if (currentGroup) {
+      const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 120;
+      sbb.classList.toggle("hidden", nearBottom);
+      if (div.scrollTop <= 40) loadMore(currentGroup);
+    }
   });
 
   initTheme();
