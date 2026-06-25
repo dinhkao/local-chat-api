@@ -70,6 +70,15 @@ body{display:flex;height:100dvh}
 #scroll-bottom-btn:hover{opacity:.9}
 #scroll-bottom-btn.hidden{display:none}
 
+/* ── Command Palette ── */
+.cp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding-top:min(20vh,180px)}
+.cp-modal{width:min(500px,92vw);background:#1e1e1e;border:1px solid #333;border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.cp-input{width:100%;padding:14px 16px;font-size:15px;border:none;background:transparent;color:#eee;outline:none}
+.cp-input::placeholder{color:#666}
+.cp-list{max-height:300px;overflow-y:auto;border-top:1px solid #333}
+.cp-item{padding:10px 16px;cursor:pointer;font-size:13px;color:#ccc;display:flex;gap:8px;align-items:center}
+.cp-item:hover,.cp-item.active{background:#2a2a2a;color:#fff}
+
 /* ── Utility ── */
 .hidden{display:none!important}
 

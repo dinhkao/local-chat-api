@@ -6,6 +6,7 @@ import { showSearch, clearSearch, doSearch } from "./search.js";
 import { sendMsg, editMsg, deleteMsg, startReply } from "./actions.js";
 import { initThemeSelect } from "./theme.js";
 import { loadGroups, createGroup } from "./api.js";
+import { initCommandPalette } from "./command-palette.js";
 
 export function wireEvents(selectGroupFn) {
   const $ = s => document.querySelector(s);
@@ -50,6 +51,8 @@ export function wireEvents(selectGroupFn) {
   $("#search-clear").onclick = clearSearch;
   $("#cancel-reply").onclick = () => { setReplyTo(null); $("#reply-bar").classList.add("hidden"); };
   $("#emoji-btn").onclick = toggleEmojiPicker;
+
+  initCommandPalette();
 
   $("#msgs").addEventListener("click", e => {
     const t = e.target;
