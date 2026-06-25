@@ -1,22 +1,14 @@
-import { loadUsers, loadGroups, loadMessages } from "./api.js";
-import { me, currentGroup, setMe, setCurrentGroup, getMsgs } from "./state.js";
+import { loadUsers, loadGroups } from "./api.js";
+import { me, currentGroup, setMe, setCurrentGroup, getMsgs, getMeta } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs } from "./messages.js";
 import { connectWS, getWS, setJoinUser } from "./net.js";
 import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
+import { fetchAndMerge, loadMore } from "./pagination.js";
 
 const $ = s => document.querySelector(s);
-
-// ── Cache merge ──
-async function fetchAndMerge(gid, opts = {}) {
-  const data = await loadMessages(gid, opts);
-  const existing = new Set(getMsgs(gid).map(m => m.id));
-  const fresh = data.messages.filter(m => !existing.has(m.id));
-  if (opts.prepend) getMsgs(gid).unshift(...fresh);
-  else getMsgs(gid).push(...fresh);
-}
 
 // ── Select group ──
 async function selectGroup(id) {
@@ -28,9 +20,8 @@ async function selectGroup(id) {
   const groups = await loadGroups();
   $("#group-title").textContent = (groups.find(x => x.id === id) || {}).name || "";
   if (!getMsgs(id).length) {
-    await fetchAndMerge(id);
-    const oldest = getMsgs(id)[0]?.id;
-    if (oldest) fetchAndMerge(id, { before: oldest, prepend: true });
+    const data = await fetchAndMerge(id);
+    getMeta(id).hasMore = data?.has_more ?? false;
   }
   renderMsgs("#msgs", getMsgs(id), me, true);
   showSearch(); clearSearch();
@@ -40,7 +31,6 @@ async function selectGroup(id) {
 
 // ── WS handler ──
 function onWSMessage(data) {
-  // Presence — not group-scoped
   if (data.event === "presence") {
     document.querySelectorAll("#user-id option").forEach(o => {
       const uid = parseInt(o.value);
@@ -88,6 +78,12 @@ async function init() {
   if (!groups.length) { ul.innerHTML = '<li style="color:#666;cursor:default">No groups yet. Create one!</li>'; }
   else { ul.innerHTML = groups.map(g => `<li data-id="${g.id}"># ${g.name}</li>`).join(""); }
   ul.querySelectorAll("li[data-id]").forEach(li => li.onclick = () => selectGroup(parseInt(li.dataset.id)));
+
+  // Lazy scroll-up load
+  $("#msgs").addEventListener("scroll", () => {
+    const div = $("#msgs");
+    if (div.scrollTop <= 40 && currentGroup) loadMore(currentGroup);
+  });
 
   initTheme();
   connectWS(onWSMessage);

@@ -10,7 +10,7 @@ export async function loadGroups() {
 }
 
 export function loadMessages(gid, opts = {}) {
-  const params = new URLSearchParams({ limit: 100 });
+  const params = new URLSearchParams({ limit: opts.limit || 100 });
   if (opts.before) params.set("before", opts.before);
   return fetch(`${API}/api/groups/${gid}/messages?${params}`)
     .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); });
