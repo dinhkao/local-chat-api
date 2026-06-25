@@ -12,6 +12,7 @@ export function setSubscribeGroup(groupId) {
 
 export function connectWS(userId, onMessage) {
   currentUserId = userId;
+  if (socket) { socket.disconnect(); socket = null; }
   socket = io({ auth: { user_id: userId } });
 
   socket.on("connect", () => {
