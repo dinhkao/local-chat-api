@@ -17,11 +17,12 @@ wss.on("connection", (ws) => {
       const userId = data.user_id;
       const text = data.text;
       const replyTo = data.reply_to;
+      const clientMsgId = data.client_msg_id;
 
       if (!groupId || !userId || !text) return;
 
       try {
-        const msg = sendMessage(groupId, userId, text, replyTo);
+        const msg = sendMessage(groupId, userId, text, replyTo, clientMsgId);
         broadcast(groupId, { event: "new_message", message: msg });
         runBots(groupId, msg);
       } catch (e) {

@@ -11,6 +11,7 @@ const sendSchema = z.object({
   user_id: z.number().int().positive(),
   text: z.string().min(1).max(4096),
   reply_to: z.number().int().positive().optional(),
+  client_msg_id: z.string().max(64).optional(),
 });
 
 /** POST /api/groups/:id/messages — send a new message */
@@ -21,7 +22,7 @@ app.post("/", async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 422);
 
   try {
-    const msg = sendMessage(groupId, parsed.data.user_id, parsed.data.text, parsed.data.reply_to);
+    const msg = sendMessage(groupId, parsed.data.user_id, parsed.data.text, parsed.data.reply_to, parsed.data.client_msg_id);
     broadcast(groupId, { event: "new_message", message: msg });
     runBots(groupId, msg);
     return c.json(msg, 201);
