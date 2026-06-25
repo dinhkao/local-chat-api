@@ -29,4 +29,14 @@ export async function loadMore(gid) {
   meta.loading = false;
 }
 
+// Keep loading until content overflows viewport or no more messages
+export async function fillViewport(gid) {
+  const div = document.getElementById("msgs");
+  if (!div) return;
+  const meta = getMeta(gid);
+  while (div.scrollHeight <= div.clientHeight && meta.hasMore && !meta.loading) {
+    await loadMore(gid);
+  }
+}
+
 export { PAGE_SIZE };

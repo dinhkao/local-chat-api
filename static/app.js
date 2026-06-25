@@ -5,7 +5,7 @@ import { renderMsgs, appendMsg, replaceMsg, removeMsg } from "./messages.js";
 import { connectWS, getWS, setJoinUser } from "./net.js";import { showSearch, clearSearch } from "./search.js";
 import { wireEvents } from "./events.js";
 import { initTheme } from "./theme.js";
-import { fetchAndMerge, loadMore } from "./pagination.js";
+import { fetchAndMerge, loadMore, fillViewport } from "./pagination.js";
 
 const $ = s => document.querySelector(s);
 
@@ -23,6 +23,7 @@ async function selectGroup(id) {
     getMeta(id).hasMore = data?.has_more ?? false;
   }
   renderMsgs("#msgs", getMsgs(id), me, true);
+  fillViewport(id);
   showSearch(); clearSearch();
   if (window.innerWidth <= 640) toggleSidebar(false);
   if (window.innerWidth > 640) $("#msg-text").focus();
