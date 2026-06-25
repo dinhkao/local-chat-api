@@ -38,7 +38,7 @@ export function wireEvents(selectGroupFn) {
     clearTimeout(searchTimer);
     if (e.key === "Escape") { clearSearch(); return; }
     if (e.key === "Enter") $("#search-input").blur();
-    searchTimer = setTimeout(() => doSearch($("#search-input").value.trim(), currentGroup, (m) => msgEl(m, me, getMsgs(currentGroup)), () => renderMsgs("#msgs", getMsgs(currentGroup), me)), 250);
+    searchTimer = setTimeout(() => doSearch($("#search-input").value.trim(), currentGroup, (m) => msgEl(m, me, getMsgs(currentGroup)), () => renderMsgs("#msgs", getMsgs(currentGroup), me, true)), 250);
   };
   $("#search-clear").onclick = clearSearch;
   $("#cancel-reply").onclick = () => { setReplyTo(null); $("#reply-bar").classList.add("hidden"); };

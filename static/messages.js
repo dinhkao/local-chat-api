@@ -36,13 +36,16 @@ export function msgEl(m, userId, cache) {
   return el;
 }
 
-export function renderMsgs(containerSelector, msgs, userId) {
+export function renderMsgs(containerSelector, msgs, userId, forceScroll) {
   const div = document.querySelector(containerSelector);
   if (!msgs || !msgs.length) {
     div.innerHTML = '<span style="color:#555">No messages yet</span>';
     return div;
   }
+  // Only auto-scroll if user was near bottom (< 60px from bottom)
+  const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 60;
   div.innerHTML = "";
   msgs.forEach(m => { const el = msgEl(m, userId, msgs); if (el) div.append(el); });
+  if (forceScroll || nearBottom) div.scrollTop = div.scrollHeight;
   return div;
 }

@@ -1,5 +1,5 @@
 import { loadUsers, loadGroups, loadMessages } from "./api.js";
-import { me, setMe, setCurrentGroup, getMsgs } from "./state.js";
+import { me, currentGroup, setMe, setCurrentGroup, getMsgs } from "./state.js";
 import { startTimeInterval, toggleSidebar, showTyping } from "./ui.js";
 import { renderMsgs } from "./messages.js";
 import { connectWS } from "./net.js";
@@ -31,7 +31,7 @@ async function selectGroup(id) {
     const oldest = getMsgs(id)[0]?.id;
     if (oldest) fetchAndMerge(id, { before: oldest, prepend: true });
   }
-  renderMsgs("#msgs", getMsgs(id), me);
+  renderMsgs("#msgs", getMsgs(id), me, true);
   showSearch(); clearSearch();
   if (window.innerWidth <= 640) toggleSidebar(false);
   if (window.innerWidth > 640) $("#msg-text").focus();
@@ -62,7 +62,7 @@ async function init() {
   const users = await loadUsers();
   const sel = $("#user-id");
   sel.innerHTML = users.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
-  sel.onchange = () => { setMe(parseInt(sel.value)); renderMsgs("#msgs", getMsgs(currentGroup), me); };
+  sel.onchange = () => { setMe(parseInt(sel.value)); renderMsgs("#msgs", getMsgs(currentGroup), me, true); };
   setMe(users[0]?.id || null);
 
   const groups = await loadGroups();

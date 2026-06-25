@@ -3,6 +3,12 @@
 ## Before work
 Read `git log --oneline -10` first — check if anyone else committed changes before starting work.
 
+## Run rule
+Always use nohup for background processes so they survive shell exit:
+```
+nohup <command> > app.log 2>&1 &
+```
+
 ## After work
 1. Test everything (see Testing rule)
 2. Commit + push every change

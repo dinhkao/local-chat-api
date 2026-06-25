@@ -11,7 +11,7 @@ export function sendMsg() {
   const clientMsgId = `c_${Date.now()}_${tempId++}`;
   const msg = { id: `_pending_${tempId}`, client_msg_id: clientMsgId, group_id: currentGroup, user_id: me, text, reply_to: replyTo, _optimistic: true };
   getMsgs(currentGroup).push(msg);
-  renderMsgs("#msgs", getMsgs(currentGroup), me);
+  renderMsgs("#msgs", getMsgs(currentGroup), me, true);
   document.getElementById("msg-text").value = "";
   setReplyTo(null);
   document.getElementById("reply-bar").classList.add("hidden");
