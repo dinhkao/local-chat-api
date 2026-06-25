@@ -58,8 +58,8 @@ export function appendMsg(containerSelector, m, userId, cache) {
   if (empty) empty.remove();
   const el = msgEl(m, userId, cache);
   if (!el) return null;
-  div.append(el);
   const nearBottom = div.scrollHeight - div.scrollTop - div.clientHeight < 60;
+  div.append(el);
   if (nearBottom) div.scrollTop = div.scrollHeight;
   return el;
 }
