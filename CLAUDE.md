@@ -27,3 +27,15 @@ After every change (feature, fix, refactor), ALWAYS test:
 6. Check SQLite schema matches current db.js
 
 Keep chat.db in repo root.
+
+## Critical patterns
+
+### Never `innerHTML=""` on `#msgs`
+`#msgs` contains persistent children (scroll-bottom-btn, etc.) that
+renderMsgs must not wipe. Use `querySelectorAll(".msg, #empty-state")`
+then `.remove()` instead. Breaking this causes invisible UI bugs.
+
+### Playwright MCP snapshot cache
+`page.goto()` returns cached snapshots — not fresh content.
+For fresh pages use: `page.context().browser().newContext()` then
+`.newPage()`. Without this, tests silently test against stale HTML.
