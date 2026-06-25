@@ -136,6 +136,7 @@ function loadMore(gid, opts = {}) {
 
 async function selectGroup(id) {
   currentGroup = id;
+  localStorage.setItem("lastGroup", id);
   $("#input-area").classList.remove("hidden");
   $("li.active")?.classList.remove("active");
   $(`li[data-id="${id}"]`)?.classList.add("active");
@@ -384,7 +385,10 @@ function connectWS() {
   ws.onclose = () => setTimeout(connectWS, 2000);
 }
 
-loadUsers().then(loadGroups).then(connectWS);
+loadUsers().then(loadGroups).then(connectWS).then(() => {
+  const last = localStorage.getItem("lastGroup");
+  if (last) selectGroup(parseInt(last));
+});
 </script>
 </body>
 </html>
