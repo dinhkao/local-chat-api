@@ -19,6 +19,12 @@ export function connectWS(userId, onMessage) {
     if (currentGroupId) socket.emit("subscribe", { group_id: currentGroupId });
   });
 
+  // Re-subscribe on reconnect (socket.io fires "connect" on reconnect too,
+  // but explicit "reconnect" makes intent clear)
+  socket.io.on("reconnect", () => {
+    if (currentGroupId) socket.emit("subscribe", { group_id: currentGroupId });
+  });
+
   // Listen for all known events
   const events = ["new_message", "edit_message", "delete_message", "typing", "presence"];
   events.forEach(evt => socket.on(evt, data => onMessage({ ...data, event: evt })));

@@ -21,14 +21,26 @@ export function sendMsg() {
   document.getElementById("reply-bar").classList.add("hidden");
   const socket = getSocket();
   const sentGroup = currentGroup; // capture at emit time, not callback time
+  let acked = false;
   if (socket?.connected) {
     socket.emit("send", { group_id: currentGroup, user_id: me, text, reply_to: rep, client_msg_id: clientMsgId }, (savedMsg) => {
+      acked = true;
       if (savedMsg?.error) return console.error("send failed:", savedMsg.error);
       // Replace optimistic with real message from server ack
       const cache = getMsgs(sentGroup);
       const idx = cache.findIndex(m => m._optimistic && m.client_msg_id === clientMsgId);
       if (idx >= 0) { cache[idx] = savedMsg; replaceMsg("#msgs", savedMsg, me, cache); }
     });
+    // Timeout: if ack never arrives (stale connection), mark as failed
+    setTimeout(() => {
+      if (acked) return;
+      const cache = getMsgs(sentGroup);
+      const idx = cache.findIndex(m => m._optimistic && m.client_msg_id === clientMsgId);
+      if (idx >= 0) {
+        cache[idx] = { ...cache[idx], _failed: true, _optimistic: false };
+        replaceMsg("#msgs", cache[idx], me, cache);
+      }
+    }, 5000);
   }
 }
 

@@ -12,6 +12,16 @@ export function msgEl(m, userId, cache) {
       <div class="meta"><span>sending...</span></div>`;
     return el;
   }
+  if (m._failed) {
+    const el = document.createElement("div");
+    el.className = "msg mine failed";
+    el.id = `msg-${m.id}`;
+    if (m.client_msg_id) el.dataset.clientMsgId = m.client_msg_id;
+    el.innerHTML = `<div class="author">${avatarHTML(userId, "You")} You</div>
+      <div class="text">${esc(m.text)}</div>
+      <div class="meta"><span style="color:#e74c3c">⚠ failed to send</span></div>`;
+    return el;
+  }
   const el = document.createElement("div");
   el.className = `msg${m.user_id === userId ? " mine" : ""}${m.deleted_at ? " deleted" : ""}`;
   el.id = `msg-${m.id}`;
